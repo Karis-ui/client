@@ -120,8 +120,8 @@ const steps = [
 
 const RegisterStaff = () => {
   const navigate = useNavigate();
-  const { registerDoctor } = useAuth();
-  
+  const { register } = useAuth();
+
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
     email: '',
@@ -145,7 +145,7 @@ const RegisterStaff = () => {
 
   const validateStep = () => {
     setError('');
-    
+
     if (activeStep === 0) {
       if (!formData.email || !formData.password || !formData.confirm_password) {
         setError('All fields are required');
@@ -164,7 +164,7 @@ const RegisterStaff = () => {
         return false;
       }
     }
-    
+
     if (activeStep === 1) {
       if (!formData.full_name || !formData.phone) {
         setError('All fields are required');
@@ -175,14 +175,14 @@ const RegisterStaff = () => {
         return false;
       }
     }
-    
+
     if (activeStep === 2) {
       if (!formData.specialization || !formData.license_number || !formData.qualifications) {
         setError('All fields are required');
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -199,18 +199,22 @@ const RegisterStaff = () => {
 
   const handleSubmit = async () => {
     if (!validateStep()) return;
-    
+
     setLoading(true);
     setError('');
 
     try {
-      await registerDoctor(formData);
+      await register(formData, 'operator');
       setSuccess('Registration submitted! Pending admin approval. You will receive an email once approved.');
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
+      setFormData((prev) => ({
+        ...prev, password: '', confirm_password: ''
+      }));
+      document.getElementById('password')?.focus();
     } finally {
       setLoading(false);
     }
@@ -324,7 +328,7 @@ const RegisterStaff = () => {
                         ),
                       }}
                     />
-                    
+
                     <GoldTextField
                       fullWidth
                       name="password"
@@ -354,7 +358,7 @@ const RegisterStaff = () => {
                         ),
                       }}
                     />
-                    
+
                     <GoldTextField
                       fullWidth
                       name="confirm_password"
@@ -395,7 +399,7 @@ const RegisterStaff = () => {
                         ),
                       }}
                     />
-                    
+
                     <GoldTextField
                       fullWidth
                       name="phone"

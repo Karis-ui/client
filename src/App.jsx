@@ -1,13 +1,15 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider,createTheme } from '@mui/material';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {AuthLayout,AppLayout} from './theme/adminComponents';
+import { AuthLayout, AppLayout } from './theme/GenLayout';
 
 import Home from './pages/authenticators/Home';
 import Login from './pages/authenticators/login';
+import AdminLogin from './pages/authenticators/adminLogin';
+import RegisterAdmin from './pages/authenticators/registerAdmin';
 import DoctorRegister from './pages/authenticators/registerDoc';
 import LabTechRegister from './pages/authenticators/registerLabTech';
 import PatientRegister from './pages/authenticators/registration';
@@ -69,7 +71,8 @@ import NotFound from './pages/common/NotFound';
 import Unauthorized from './pages/common/Unauthorized';
 
 import { AuthProvider, useAuth } from './context/authContext';
-import {ThemeContextProvider} from './context/ThemeContext';
+import { ThemeContextProvider } from './context/ThemeContext';
+import { AdLayout } from './theme/AdLayout';
 
 const theme = createTheme({
   palette: {
@@ -141,6 +144,7 @@ const theme = createTheme({
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -151,14 +155,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  const userRole = user.user_type || user.role;
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return children;
+  return children ? children : <Outlet />;
 };
 
 const RoleBasedRedirect = () => {
@@ -175,8 +180,9 @@ const RoleBasedRedirect = () => {
     operator: '/operator/dashboard',
   };
 
-  const redirectPath = roleRoutes[user.role] || '/home';
-  return <Navigate to={redirectPath} replace/>;
+  const userRole = user.user_type || user.role;
+  const redirectPath = roleRoutes[userRole] || '/home';
+  return <Navigate to={redirectPath} replace />;
 };
 
 function App() {
@@ -188,21 +194,24 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<AuthLayout />}>
-              <Route index element={<Navigate to="/home" replace />} />
-                <Route path='/home' element={<Home/>}/>
+                <Route index element={<Navigate to="/home" replace />} />
+                <Route path='/home' element={<Home />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/register/doctor" element={<DoctorRegister />} />
                 <Route path="/register/bill-operator" element={<RegisterStaff />} />
                 <Route path="/register/lab-technician" element={<LabTechRegister />} />
                 <Route path="/register/patient" element={<PatientRegister />} />
+                <Route path="/register/admin" element={<RegisterAdmin />} />
               </Route>
 
               <Route path="/" element={<RoleBasedRedirect />} />
 
+
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route element={<AppLayout />}>
+                <Route element={<AdLayout />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<UserList />} />
                   <Route path="/admin/users/:id" element={<UserDetails />} />
@@ -227,6 +236,7 @@ function App() {
                 </Route>
               </Route>
 
+
               <Route element={<ProtectedRoute allowedRoles={['lab_technician']} />}>
                 <Route element={<AppLayout />}>
                   <Route path="/lab/dashboard" element={<LabDashboard />} />
@@ -239,6 +249,7 @@ function App() {
                   <Route path="/lab/search" element={<Search />} />
                 </Route>
               </Route>
+
 
               <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route element={<AppLayout />}>
@@ -253,6 +264,7 @@ function App() {
                   <Route path="/patient/search" element={<SearchResults />} />
                 </Route>
               </Route>
+
 
               <Route element={<ProtectedRoute allowedRoles={['operator']} />}>
                 <Route element={<AppLayout />}>

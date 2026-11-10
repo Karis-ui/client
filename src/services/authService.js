@@ -3,9 +3,41 @@ import api from "./api";
 import { useEffect } from "react";
 
 export const authService = {
+    registerAdmin: async (adminData) => {
+        try {
+            const response = await api.post('/accounts/admin/register/', {
+                email: adminData.email,
+                password: adminData.password,
+                confirm_password: adminData.confirm_password,
+                full_name: adminData.full_name,
+                phone: adminData.phone
+            });
+            console.log('Admin Registration successful:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Admin Registration failed.', error.response?.data || error.message);
+            throw error;
+        }
+    },
+    adminLogin: async (email, password) => {
+        try {
+            console.log('Attempting login for:', email);
+            const response = await api.post('/accounts/admin/login/', { email, password });
+
+            if (response.data.data.tokens) {
+                localStorage.setItem('access_token', response.data.data.tokens.access);
+                localStorage.setItem('refresh_token', response.data.data.tokens.refresh);
+                localStorage.setItem('user', JSON.stringify(response.data.data.user));
+            }
+            return response.data
+        } catch (err) {
+            console.log('Login Failed:', err.response?.data || err.message);
+            throw err;
+        }
+    },
     registerPatient: async (userData) => {
         try {
-            const response = await api.post('/signup/', {
+            const response = await api.post('/accounts/signup/', {
                 email: userData.email,
                 password: userData.password,
                 confirm_password: userData.confirm_password,
@@ -26,7 +58,7 @@ export const authService = {
 
     registerDoctor: async (doctorData) => {
         try {
-            const response = await api.post('/doctor/register/', {
+            const response = await api.post('/accounts/doctor/register/', {
                 email: doctorData.email,
                 password: doctorData.password,
                 confirm_password: doctorData.confirm_password,
@@ -47,7 +79,7 @@ export const authService = {
 
     registerOperator: async (operatorData) => {
         try {
-            const response = await api.post('/operator/register/', {
+            const response = await api.post('/accounts/operator/register/', {
                 email: operatorData.email,
                 password: operatorData.password,
                 confirm_password: operatorData.confirm_password,
@@ -65,7 +97,7 @@ export const authService = {
 
     registerLabTechnician: async (labTechData) => {
         try {
-            const response = await api.post('/lab/register/', {
+            const response = await api.post('/accounts/lab/register/', {
                 email: labTechData.email,
                 password: labTechData.password,
                 confirm_password: labTechData.confirm_password,
@@ -84,7 +116,7 @@ export const authService = {
     login: async (email, password) => {
         try {
             console.log('Attempting login for:', email);
-            const response = await api.post('/login/', { email, password });
+            const response = await api.post('/accounts/login/', { email, password });
 
             if (response.data.data.tokens) {
                 localStorage.setItem('access_token', response.data.data.tokens.access);
@@ -101,7 +133,7 @@ export const authService = {
     forgotPassword: async (email) => {
         try {
             console.log("📧 Requesting password reset for:", email);
-            const response = await api.post('/forgot-password/', { email });
+            const response = await api.post('/accounts/forgot-password/', { email });
             console.log("Password reset email sent:", response.data);
             return response.data;
         } catch (err) {
@@ -113,7 +145,7 @@ export const authService = {
     resetPassword: async (uId, token, newPassword, confirmPassword) => {
         try {
             console.log('Reseting password for UID:', uId);
-            const response = await api.post('/change-password/', {
+            const response = await api.post('/accounts/change-password/', {
                 uId: uId, token: token, newPassword: newPassword, confirm_Password: confirmPassword
             });
             console.log('Password reset successfully');
@@ -131,21 +163,22 @@ export const authService = {
         window.location.href = '/login';
     },
 
-    getCurrentUser: async (uId) => {
+    adminLogout: () => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/admin/login'
+    },
+
+    getCurrentUser: () => {
         try {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                throw new Error('No access token available');
+            const user = localStorage.getItem('user');
+            if (!user) {
+                return null;
             }
-            console.log('Getting current user for UID:', uId);
-            const response = await api.get('/profile/', {
-                uId: uId
-            });
-            console.log('Current user retrieved successfully');
-            return response;
+            return JSON.parse(user);
         } catch (err) {
-            console.error('🔄 Get current user error');
-            throw err;
+            console.error('🔄 Failed to parse stored user', err);
+            return null;
         }
     },
 
@@ -157,8 +190,8 @@ export const authService = {
             }
 
             console.log('🔄 Refreshing access token');
-            const response = await api.post('/refresh_token/', { refresh: refresh });
-            localStorage.setItem('access_token', response.data.data.access);
+            const response = await api.post('/accounts/refresh_token/', { refresh: refresh });
+            localStorage.setItem('access_token', response.data.access);
             console.log('Token refreshed successfully.');
             return response;
         }

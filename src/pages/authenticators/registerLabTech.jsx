@@ -34,8 +34,8 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import authService from '../../services/authService';
-import { platinumTheme } from '../../theme/adminComponents';
+import { useAuth } from '../../context/authContext';
+import { platinumTheme } from '../../theme/GenLayout';
 
 const steps = ['Personal Information', 'Professional Details', 'Account Setup'];
 
@@ -59,6 +59,7 @@ export const LabTechRegister = () => {
     confirm_password: '',
   });
   const [errors, setErrors] = useState({});
+  const register = useAuth();
 
   const validateStep = () => {
     const newErrors = {};
@@ -111,13 +112,17 @@ export const LabTechRegister = () => {
       };
       delete submitData.confirm_password;
 
-      const response = await authService.register(submitData);
+      const response = await register(formData, 'lab_technician');
       if (response.data.status === 'success') {
         toast.success('Registration successful! Awaiting admin approval.');
         setTimeout(() => navigate('/login'), 3000);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
+      setFormData((prev) => ({
+        ...prev, password: '', confirm_password: ''
+      }));
+      document.getElementById('password')?.focus();
     } finally {
       setLoading(false);
     }

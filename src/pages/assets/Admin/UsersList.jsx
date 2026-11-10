@@ -62,7 +62,7 @@ import { toast } from 'react-toastify';
 import {
   platinumTheme, PremiumHeader, StatCard, PremiumCard, PremiumTableContainer,
   StatusChip, RoleBadge, GlassSearchBar, SectionTitle, PageTitle, ActionIconButton, PlatinumButton
-} from '../../../theme/adminComponents';
+} from '../../../theme/GenLayout';
 import { useConfirm } from '../../../theme/useConfirm';
 import { adminService } from '../../../services/users/admin';
 import { AnimatePresence } from 'framer-motion';
@@ -74,14 +74,14 @@ export const UserList = () => {
   const [users, setUsers] = useState([]);
   const [filterUsers, setFilterUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState([]);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [tabValue, setTabValue] = useState(0);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [stats, setStats] = useState({
     total: 0, admin: 0, doctor: 0, lab_technician: 0, staff: 0, patient: 0, active: 0, inactive: 0
   });

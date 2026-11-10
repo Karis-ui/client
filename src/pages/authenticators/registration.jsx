@@ -220,7 +220,7 @@ const PatientRegister = () => {
       last_name: formData.last_name,
       phone: formData.phone.replace(/\D/g, ''),
       age: parseInt(formData.age),
-      gender: formData.gender === 'M' ? 'Male' : formData.gender === 'F' ? 'Female' : 'Other',
+      gender: formData.gender === 'M' ? 'Male' : 'Female',
       address: formData.address,
     };
     try {
@@ -230,7 +230,11 @@ const PatientRegister = () => {
         navigate('/patient/dashboard');
       }, 2000);
     } catch (err) {
-      setError('Registration failed');
+      setError('Registration failed:', err);
+      setFormData((prev) => ({
+        ...prev, password: '', confirm_password: ''
+      }));
+      document.getElementById('password')?.focus();
     } finally {
       setLoading(false);
     }
@@ -469,7 +473,6 @@ const PatientRegister = () => {
                       <MenuItem value="">Select Gender</MenuItem>
                       <MenuItem value="M">Male</MenuItem>
                       <MenuItem value="F">Female</MenuItem>
-                      <MenuItem value="O">Other</MenuItem>
                     </GoldTextField>
                   </Box>
                 </Grow>

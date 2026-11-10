@@ -127,21 +127,25 @@ const Login = () => {
 
     try {
       const response = await login(formData.email, formData.password);
+      const userType = response?.data?.data?.user?.user_type || response?.data?.user?.user_type;
 
-      const userType = response.data.user.user_type;
       if (userType === 'patient') {
         navigate('/patient/dashboard');
       } else if (userType === 'doctor') {
         navigate('/doctor/dashboard');
-      } else if (userType === 'admin') {
-        navigate('/admin/dashboard');
       } else if (userType === 'operator') {
         navigate('/operator/dashboard');
-      } else if (userType === 'lab_tech') {
+      } else if (userType === 'lab_technician' || userType === 'lab_tech') {
         navigate('/lab/dashboard');
+      } else {
+        navigate('/home');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      setError(`Login failed:${err}`);
+      setFormData((prev) => ({
+        ...prev, password: ''
+      }));
+      document.getElementById('password')?.focus();
     } finally {
       setLoading(false);
     }
