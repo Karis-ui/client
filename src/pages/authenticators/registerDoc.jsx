@@ -206,7 +206,6 @@ const DoctorRegister = () => {
         setError('All fields are required');
         return false;
       }
-      // Check that license has actual numbers after the prefix
       if (formData.license_number === 'KMPDC-') {
         setError('Please enter a valid license number');
         return false;
@@ -238,12 +237,7 @@ const DoctorRegister = () => {
     setError('');
 
     try {
-      const data = new FormData();
-      Object.keys(formData).forEach(key => {
-        data.append(key, formData[key]);
-      });
-
-      await register(data, 'doctor');
+      await register(formData, 'doctor');
 
       setSuccess('Registration submitted! Pending admin approval. You will receive an email once approved.');
       setTimeout(() => {
